@@ -1,0 +1,17 @@
+# 阶段 03：系统与常用软件（fcitx5 包在 INSTALL_FCITX5=1 时安装）
+fcitx5
+fcitx5-chinese-addons
+fcitx5-config-qt
+fcitx5-frontend-all
+fcitx5-frontend-gtk3
+fcitx5-frontend-qt6
+fcitx5-material-color
+kde-config-fcitx5
+vlc
+mysql-client-core
+virt-manager
+stacer
+lm-sensors
+chntpw
+libnss-winbind
+winbind

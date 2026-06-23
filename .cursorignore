@@ -1,0 +1,33 @@
+# 构建产物
+dist/
+build/
+target/
+*.class
+
+# 依赖包
+node_modules/
+.vite/
+.cache/
+.obsidian
+
+# 日志和数据文件
+logs/
+*.log
+*.tmp
+
+# 用户本地配置（勿提交）
+config/config.env
+config/docker-compose.yaml
+config/maven-settings.xml
+
+# 用户自备安装包（体积大，不进索引）
+installers/deb/*
+!installers/deb/.gitkeep
+installers/appimage/*
+!installers/appimage/.gitkeep
+installers/tar/*
+!installers/tar/.gitkeep
+
+# 系统目录
+.DS_Store
+Thumbs.db

@@ -1,0 +1,8 @@
+# User-provided installers (not in git)
+IDE
+installers/deb/*
+!installers/deb/.gitkeep
+installers/appimage/*
+!installers/appimage/.gitkeep
+installers/tar/*
+!installers/tar/.gitkeep

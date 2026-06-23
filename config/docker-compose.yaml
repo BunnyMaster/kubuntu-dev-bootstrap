@@ -1,0 +1,418 @@
+# 定义整个开发栈的名称
+name: microservices-dev-stack
+
+services:
+  # ==================== MySQL 主从复制集群 ====================
+  mysql-master:
+    container_name: mysql-master
+    image: mysql:8.0.33
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=Dev1234!
+      - MYSQL_DATABASE=auth_admin
+      - MYSQL_USER=dev_user
+      - MYSQL_PASSWORD=Dev1234!
+      - TZ=Asia/Shanghai
+      - MYSQL_ROOT_HOST=%
+    volumes:
+      - /home/bunny/develop/docker-compose/develop/mysql/master/conf:/etc/mysql/conf.d
+      - /home/bunny/develop/docker-compose/develop/mysql/master/data:/var/lib/mysql
+      - /home/bunny/develop/docker-compose/develop/mysql/master/backup:/backup
+    command:
+      - "--server-id=1"
+      - "--log-bin=mysql-bin"
+      - "--binlog-format=ROW"
+      - "--gtid-mode=ON"
+      - "--enforce-gtid-consistency=ON"
+    networks:
+      - microservices-net
+    restart: always
+
+  # mysql-slave:
+  #   container_name: mysql-slave
+  #   image: mysql:8.0.33
+  #   ports:
+  #     - "3307:3306"
+  #   environment:
+  #     - MYSQL_ROOT_PASSWORD=Dev1234!
+  #     - TZ=Asia/Shanghai
+  #   volumes:
+  #     - /home/bunny/develop/docker-compose/develop/mysql/slave/conf:/etc/mysql/conf.d
+  #     - /home/bunny/develop/docker-compose/develop/mysql/slave/data:/var/lib/mysql
+  #   command:
+  #     - "--server-id=2"
+  #     - "--log-bin=mysql-bin"
+  #     - "--binlog-format=ROW"
+  #     - "--gtid-mode=ON"
+  #     - "--enforce-gtid-consistency=ON"
+  #     - "--read-only=1"
+  #   depends_on:
+  #     - mysql-master
+  #   networks:
+  #     - microservices-net
+  #   restart: no
+
+  # ==================== PostgreSQL ====================
+  postgresql:
+    container_name: postgresql-primary
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=auth_service
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Dev1234!
+      - TZ=Asia/Shanghai
+    volumes:
+      - /home/bunny/develop/docker-compose/develop/postgresql/data:/var/lib/postgresql/data
+    networks:
+      - microservices-net
+    restart: always
+
+  # ==================== MongoDB 副本集 ====================
+  # mongodb1:
+  #   container_name: mongodb-node1
+  #   image: mongo:7.0
+  #   ports:
+  #     - "27017:27017"
+  #   volumes:
+  #     - /home/bunny/develop/docker-compose/develop/mongodb/node1/data:/data/db
+  #   command: [ "--replSet", "rs0", "--bind_ip_all" ]
+  #   networks:
+  #     - microservices-net
+  #   restart: no
+  #
+  # mongodb2:
+  #   container_name: mongodb-node2
+  #   image: mongo:7.0
+  #   ports:
+  #     - "27018:27017"
+  #   volumes:
+  #     - /home/bunny/develop/docker-compose/develop/mongodb/node2/data:/data/db
+  #   command: [ "--replSet", "rs0", "--bind_ip_all" ]
+  #   networks:
+  #     - microservices-net
+  #   restart: no
+  #
+  # mongodb3:
+  #   container_name: mongodb-node3
+  #   image: mongo:7.0
+  #   ports:
+  #     - "27019:27017"
+  #   volumes:
+  #     - /home/bunny/develop/docker-compose/develop/mongodb/node3/data:/data/db
+  #   command: [ "--replSet", "rs0", "--bind_ip_all" ]
+  #   networks:
+  #     - microservices-net
+  #   restart: no
+
+  # ==================== Redis 哨兵模式集群 ====================
+  redis-master:
+    container_name: redis-master
+    image: redis:7.0-alpine
+    ports:
+      - "6379:6379"
+    command: |
+      redis-server
+      --requirepass Dev1234!
+      --masterauth Dev1234!
+      --appendonly yes
+    volumes:
+      - /home/bunny/develop/docker-compose/develop/redis/master/data:/data
+    networks:
+      - microservices-net
+    restart: always
+
+  # redis-slave1:
+  #   container_name: redis-slave1
+  #   image: redis:7.0-alpine
+  #   ports:
+  #     - "6380:6379"
+  #   command: |
+  #     redis-server
+  #     --slaveof redis-master 6379
+  #     --masterauth Dev1234!
+  #     --requirepass Dev1234!
+  #     --appendonly yes
+  #   depends_on:
+  #     - redis-master
+  #   networks:
+  #     - microservices-net
+  #   restart: no
+  #
+  # redis-slave2:
+  #   container_name: redis-slave2
+  #   image: redis:7.0-alpine
+  #   ports:
+  #     - "6381:6379"
+  #   command: |
+  #     redis-server
+  #     --slaveof redis-master 6379
+  #     --masterauth Dev1234!
+  #     --requirepass Dev1234!
+  #     --appendonly yes
+  #   depends_on:
+  #     - redis-master
+  #   networks:
+  #     - microservices-net
+  #   restart: no
+
+  # ==================== Sentinel 实例 ====================
+  # redis-sentinel1:
+  #   container_name: redis-sentinel1
+  #   image: redis:7.0-alpine
+  #   ports:
+  #     - "26379:26379"
+  #   command: |
+  #     sh -c "
+  #     mkdir -p /etc/redis &&
+  #     cat > /etc/redis/sentinel.conf << 'EOF'
+  #     port 26379
+  #     dir /tmp
+  #     sentinel monitor mymaster redis-master 6379 2
+  #     sentinel auth-pass mymaster Dev1234!
+  #     sentinel down-after-milliseconds mymaster 5000
+  #     sentinel parallel-syncs mymaster 1
+  #     sentinel failover-timeout mymaster 10000
+  #     sentinel resolve-hostnames yes
+  #     sentinel announce-hostnames yes
+  #     EOF
+  #     redis-sentinel /etc/redis/sentinel.conf
+  #     "
+  #   depends_on:
+  #     - redis-master
+  #     - redis-slave1
+  #     - redis-slave2
+  #   networks:
+  #     - microservices-net
+  #   restart: no
+
+  # ==================== Redis RedisSearch ====================
+  # redis-stack:
+  #   container_name: redis-stack
+  #   image: redislabs/redisearch:2.8.8
+  #   ports:
+  #     - "16379:6379"
+  #   command: >
+  #     redis-server
+  #     --loadmodule /usr/lib/redis/modules/redisearch.so
+  #     --loadmodule /usr/lib/redis/modules/rejson.so
+  #     --requirepass Dev1234!
+  #   volumes:
+  #     - /home/bunny/develop/docker-compose/develop/redis-stack/data:/data
+  #   networks:
+  #     - microservices-net
+  #   restart: no
+
+  # ==================== MinIO ====================
+  # minio:
+  #   container_name: minio-storage
+  #   image: minio/minio
+  #   ports:
+  #     - "9000:9000"  # API端口
+  #     - "9090:9090"  # 控制台端口
+  #   environment:
+  #     - MINIO_ROOT_USER=admin
+  #     - MINIO_ROOT_PASSWORD=Dev1234!
+  #   volumes:
+  #     - /home/bunny/develop/docker-compose/develop/minio/data:/data
+  #   command: "server /data --console-address :9090"
+  #   networks:
+  #     - microservices-net
+  #   restart: no
+
+  # ==================== GitLab ====================
+  # gitlab:
+  #   container_name: gitlab
+  #   image: gitlab/gitlab-ce:latest
+  #   hostname: 'gitlab.local'
+  #   environment:
+  #     GITLAB_OMNIBUS_CONFIG: |
+  #       external_url 'http://172.17.0.1:8929'
+  #       gitlab_rails['gitlab_shell_ssh_port'] = 2224
+  #       gitlab_rails['time_zone'] = 'Asia/Shanghai'
+  #       gitlab_rails['gitlab_email_enabled'] = true
+  #       gitlab_rails['gitlab_email_from'] = 'gitlab@local.dev'
+  #       gitlab_rails['smtp_enable'] = false
+  #       gitlab_rails['gitlab_default_can_create_group'] = true
+  #       gitlab_rails['gitlab_username_changing_enabled'] = true
+  #       gitlab_rails['initial_root_password'] = 'Dev1234!'
+  #       gitlab_rails['initial_shared_runners_registration_token'] = 'GR1348941'
+  #       gitlab_rails['gitlab_default_projects_features_issues'] = true
+  #       gitlab_rails['gitlab_default_projects_features_merge_requests'] = true
+  #       gitlab_rails['gitlab_default_projects_features_wiki'] = true
+  #       gitlab_rails['gitlab_default_projects_features_snippets'] = true
+  #       gitlab_rails['gitlab_default_projects_features_builds'] = true
+  #   ports:
+  #     - "8929:8929"   # HTTP端口
+  #     - "2224:22"     # SSH端口
+  #     - "8443:443"     # HTTPS端口
+  #   volumes:
+  #     - /home/bunny/develop/docker-compose/develop/gitlab/config:/etc/gitlab
+  #     - /home/bunny/develop/docker-compose/develop/gitlab/logs:/var/log/gitlab
+  #     - /home/bunny/develop/docker-compose/develop/gitlab/data:/var/opt/gitlab
+  #   networks:
+  #     - microservices-net
+  #   restart: no
+  #   shm_size: '256m'
+  #
+  # # ==================== GitLab Runner ====================
+  # gitlab-runner:
+  #   container_name: gitlab-runner
+  #   image: gitlab/gitlab-runner:latest
+  #   volumes:
+  #     - /home/bunny/develop/docker-compose/develop/gitlab-runner/config:/etc/gitlab-runner
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   environment:
+  #     - DOCKER_HOST=unix:///var/run/docker.sock
+  #   networks:
+  #     - microservices-net
+  #   restart: no
+  #   depends_on:
+  #     - gitlab
+
+  # ==================== Jenkins (可选，作为CI/CD的替代方案) ====================
+  # jenkins:
+  #   container_name: jenkins
+  #   image: jenkins/jenkins:lts-jdk17
+  #   ports:
+  #     - "8080:8080"
+  #     - "50000:50000"
+  #   environment:
+  #     - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
+  #     - JENKINS_ADMIN_ID=admin
+  #     - JENKINS_ADMIN_PASSWORD=Dev1234!
+  #   volumes:
+  #     - /home/bunny/develop/docker-compose/develop/jenkins/data:/var/jenkins_home
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - /home/bunny/develop/docker-compose/develop/jenkins/jobs:/var/jenkins_home/jobs
+  #   networks:
+  #     - microservices-net
+  #   restart: no
+  #   user: root
+
+  # ==================== SonarQube (代码质量检查) ====================
+  sonarqube:
+    container_name: sonarqube
+    image: sonarqube:25.12.0.117093-community
+    ports:
+      - "9001:9000"
+    environment:
+      - SONAR_JDBC_URL=jdbc:postgresql://postgresql:5432/sonarqube
+      - SONAR_JDBC_USERNAME=postgres
+      - SONAR_JDBC_PASSWORD=Dev1234!
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+      - SONAR_WEB_JAVAADDITIONALOPTS=-Djava.security.egd=file:/dev/./urandom
+    volumes:
+      - /home/bunny/develop/docker-compose/develop/sonarqube/data:/opt/sonarqube/data
+      - /home/bunny/develop/docker-compose/develop/sonarqube/extensions:/opt/sonarqube/extensions
+      - /home/bunny/develop/docker-compose/develop/sonarqube/logs:/opt/sonarqube/logs
+    depends_on:
+      - postgresql
+    networks:
+      - microservices-net
+    restart: always
+    # 添加健康检查
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://172.17.0.1:9000/api/system/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ==================== Nacos ====================
+  nacos:
+    container_name: nacos-server
+    image: nacos/nacos-server:v3.1.0
+    ports:
+      - "18080:8080"
+      - "8848:8848"
+      - "9848:9848"
+      - "9849:9849"
+    environment:
+      - MODE=standalone
+      - NACOS_AUTH_TOKEN=QnVubnktQXV0aC1TZXJ2ZXItUHJpdmF0ZS1TZWNyZXRLZXk=
+      - NACOS_AUTH_IDENTITY_KEY=nacosAdmin
+      - NACOS_AUTH_IDENTITY_VALUE=Dev1234!
+      - MYSQL_SERVICE_HOST=mysql-master
+      - MYSQL_SERVICE_PORT=3306
+      - MYSQL_SERVICE_DB_NAME=nacos
+      - MYSQL_SERVICE_USER=dev_user
+      - MYSQL_SERVICE_PASSWORD=Dev1234!
+    volumes:
+      - /home/bunny/develop/docker-compose/develop/nacos/logs:/home/nacos/logs
+      - /home/bunny/develop/docker-compose/develop/nacos/data:/home/nacos/data
+      - /home/bunny/develop/docker-compose/develop/nacos/config:/home/nacos/config
+    depends_on:
+      - mysql-master
+    networks:
+      - microservices-net
+    restart: always
+
+  # ==================== Sentinel ====================
+  # sentinel-dashboard:
+  #   container_name: sentinel-dashboard
+  #   image: bladex/sentinel-dashboard:1.8.6
+  #   ports:
+  #     - "8858:8858"
+  #   environment:
+  #     - AUTH_USERNAME=sentinel
+  #     - AUTH_PASSWORD=Dev1234!
+  #   networks:
+  #     - microservices-net
+  #   restart: no
+
+  # ==================== Seata ====================
+  # seata-server:
+  #   container_name: seata-server
+  #   image: seataio/seata-server:1.6.1
+  #   ports:
+  #     - "8091:8091"
+  #     - "7091:7091"
+  #   environment:
+  #     - SEATA_IP=seata-server
+  #     - STORE_MODE=db
+  #   networks:
+  #     - microservices-net
+  #   restart: no
+
+  # ==================== 监控工具 ====================
+  # grafana:
+  #   container_name: grafana
+  #   image: grafana/grafana:latest
+  #   ports:
+  #     - "9800:9800"
+  #     - "9700:3000"
+  #   restart: no
+  #   networks:
+  #     - microservices-net
+
+  # ==================== gitea ====================
+  # gitea:
+  #   image: gitea/gitea:1.25
+  #   container_name: gitea
+  #   environment:
+  #     - USER_UID=1000
+  #     - USER_GID=1000
+  #     - GITEA__database__DB_TYPE=mysql
+  #     - GITEA__database__HOST=mysql-master
+  #     - GITEA__database__NAME=gitea
+  #     - GITEA__database__USER=root
+  #     - GITEA__database__PASSWD=Dev1234!
+  #   restart: no
+  #   volumes:
+  #     - /home/bunny/develop/docker-compose/develop/gitea:/data
+  #     - /etc/timezone:/etc/timezone:ro
+  #     - /etc/localtime:/etc/localtime:ro
+  #   ports:
+  #     - "3000:3000"
+  #     - "222:22"
+  #   depends_on:
+  #     - mysql-master
+  #   networks:
+  #     - microservices-net
+
+networks:
+  microservices-net:
+    name: microservices-dev-network
+    driver: bridge

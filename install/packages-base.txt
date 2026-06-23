@@ -1,0 +1,22 @@
+# 阶段 02：基础工具（每行一个包名，# 开头为注释）
+git
+curl
+wget
+ca-certificates
+unzip
+zip
+build-essential
+libssl-dev
+zlib1g-dev
+timeshift
+tree
+vim
+vim-nox
+htop
+openssh-server
+p7zip-full
+unrar
+tar
+gzip
+bzip2
+xz-utils
