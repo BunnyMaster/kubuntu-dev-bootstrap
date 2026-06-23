@@ -7,7 +7,7 @@
 | 文件 | 说明 |
 |------|------|
 | `config.env.example` | 复制为 `config.env`，安装器选项 + 可导出环境变量 |
-| `docker-compose.yaml.example` | 复制为 `docker-compose.yaml`，阶段 09 使用 |
+| `docker-compose.yaml.example` | 复制为 `docker-compose.yaml` 后手动 `docker compose up -d`（非安装阶段） |
 | `maven-settings.xml.example` | 复制为 `maven-settings.xml`（阿里云镜像），阶段 05 可选 |
 
 ## config.env 两类键
@@ -33,3 +33,12 @@ cp config.env.example config.env
 ```
 
 `ENV_SCOPE=user` 时写入 `~/.config/environment.d/99-dotfiles.conf`；`system` 时写入 `/etc/environment.d/`（需 sudo）。
+
+## Docker Compose
+
+安装器不自动执行 compose。重登使 docker 组生效后：
+
+```bash
+cp docker-compose.yaml.example docker-compose.yaml
+cd <repo>/config && docker compose up -d
+```

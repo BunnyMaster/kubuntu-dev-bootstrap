@@ -8,7 +8,10 @@ fcitx5-frontend-qt6
 fcitx5-material-color
 kde-config-fcitx5
 vlc
+# kubuntu 26 使用这个
 mysql-client-core
+# kubuntu 24 使用这个
+# mysql-client-core-8.0
 virt-manager
 stacer
 lm-sensors

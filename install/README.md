@@ -39,11 +39,17 @@ cd install
 
 ## 阶段脚本
 
-`stages/01-mirror.sh` … `09-compose.sh`，由 `setup.sh` 按编号调用。
+`stages/01-mirror.sh` … `08-git.sh`，由 `setup.sh` 按编号调用。
 
 ## 预设
 
 - `base` → 01,02,03
 - `dev` → 05
 - `gpu` → 06
-- `setup` → 07,08,09
+- `setup` → 07,08
+
+重登后手动启动 compose（阶段 05 安装 Docker 后需重新登录使 docker 组生效）：
+
+```bash
+cd <repo>/config && docker compose up -d
+```

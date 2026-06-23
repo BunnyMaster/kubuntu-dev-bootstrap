@@ -33,7 +33,7 @@ Ubuntu/Kubuntu dotfiles 分阶段安装
   ./setup.sh --preset base                01-03（镜像 + 基础包 + 系统包）
   ./setup.sh --preset dev                 05 开发栈
   ./setup.sh --preset gpu                 06 NVIDIA
-  ./setup.sh --preset setup               07-09 收尾（环境变量、Git、compose）
+  ./setup.sh --preset setup               07-08 收尾（环境变量、Git）
   ./setup.sh --stages 01,02,03            指定阶段（--stage 为别名）
   ./setup.sh --release 24.04|26.04        指定发行版（默认自动检测）
   ./setup.sh --list-stages                列出阶段
@@ -191,11 +191,10 @@ if [[ -z "$STAGES_ARG" ]]; then
   echo "  6) 06 NVIDIA"
   echo "  7) 07 环境变量"
   echo "  8) 08 Git"
-  echo "  9) 09 docker compose"
   echo "  a) preset base: 01-03"
   echo "  b) preset dev: 05"
   echo "  c) preset gpu: 06"
-  echo "  d) preset setup: 07-09"
+  echo "  d) preset setup: 07-08"
   echo "  0) 退出"
   read -r -p "请选择: " choice
   case "$choice" in
@@ -207,7 +206,6 @@ if [[ -z "$STAGES_ARG" ]]; then
     6) STAGES_ARG="06" ;;
     7) STAGES_ARG="07" ;;
     8) STAGES_ARG="08" ;;
-    9) STAGES_ARG="09" ;;
     a|A) STAGES_ARG="${PRESET_STAGES[base]}" ;;
     b|B) STAGES_ARG="${PRESET_STAGES[dev]}" ;;
     c|C) STAGES_ARG="${PRESET_STAGES[gpu]}" ;;

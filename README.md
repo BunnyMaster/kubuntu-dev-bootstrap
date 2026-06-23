@@ -21,29 +21,37 @@ chmod +x setup.sh stages/*.sh lib/*.sh
 
 ## 推荐顺序
 
-| 步骤 | 命令 | 说明 |
-|------|------|------|
-| 1 | `cp config/config.env.example config/config.env` | 填写 Git、镜像等 |
-| 2 | `./setup.sh --preset base` | 01→03 镜像与系统包 |
-| 3 | `./setup.sh --stages 04` | 可选：本地 deb/AppImage/tar |
-| 4 | Timeshift 快照 | 建议 `04-installers-ok` 或 `02-base-ready` |
-| 5 | `./setup.sh --preset dev` | Java / Maven / nvm / Docker |
-| 6 | `./setup.sh --preset gpu` | NVIDIA，完成后**重启** |
-| 7 | `./setup.sh --preset setup` | 环境变量、Git、docker compose |
+| 步骤 | 命令                                             | 说明                                       |
+| ---- | ------------------------------------------------ | ------------------------------------------ |
+| 1    | `cp config/config.env.example config/config.env` | 填写 Git、镜像等                           |
+| 2    | `./setup.sh --preset base`                       | 01→03 镜像与系统包                         |
+| 3    | `./setup.sh --stages 04`                         | 可选：本地 deb/AppImage/tar                |
+| 4    | Timeshift 快照                                   | 建议 `04-installers-ok` 或 `02-base-ready` |
+| 5    | `./setup.sh --preset dev`                        | Java / Maven / nvm / Docker                |
+| 6    | `./setup.sh --preset gpu`                        | NVIDIA，完成后**重启**                     |
+| 7    | `./setup.sh --preset setup`                      | 环境变量、Git                              |
 
 ## 阶段一览
 
-| 阶段 | 内容 |
-|------|------|
-| 01 | APT 镜像（`APT_MIRROR=tuna\|official`） |
-| 02 | 基础包 `install/packages-base.txt` |
-| 03 | 系统包 `install/packages-extras.txt` + fcitx5（`INSTALL_FCITX5=1`） |
-| 04 | `installers/deb/`、`installers/appimage/`、`installers/tar/`（空则跳过） |
-| 05 | SDKMAN Java、Maven、nvm、nrm、pnpm、Docker CE |
-| 06 | NVIDIA（Timeshift 提示） |
-| 07 | 将 `config.env` 中环境变量写入用户或系统 scope |
-| 08 | `git config --global` |
-| 09 | 若存在 `config/docker-compose.yaml` 则 `docker compose up -d` |
+| 阶段 | 内容                                                                     |
+| ---- | ------------------------------------------------------------------------ |
+| 01   | APT 镜像（`APT_MIRROR=tuna\|official`）                                  |
+| 02   | 基础包 `install/packages-base.txt`                                       |
+| 03   | 系统包 `install/packages-extras.txt` + fcitx5（`INSTALL_FCITX5=1`）      |
+| 04   | `installers/deb/`、`installers/appimage/`、`installers/tar/`（空则跳过） |
+| 05   | SDKMAN Java、Maven、nvm、nrm、pnpm、Docker CE                            |
+| 06   | NVIDIA（Timeshift 提示）                                                 |
+| 07   | 将 `config.env` 中环境变量写入用户或系统 scope                           |
+| 08   | `git config --global`                                                    |
+
+重登后（docker 组生效），若需启动 compose 服务：
+
+```bash
+cp config/docker-compose.yaml.example config/docker-compose.yaml   # 首次
+cd <repo>/config && docker compose up -d
+```
+
+`docker-compose.yaml.example` 仅为模板，安装器不会自动执行 compose。
 
 ## setup.sh 常用选项
 
@@ -55,7 +63,7 @@ chmod +x setup.sh stages/*.sh lib/*.sh
 ./setup.sh --help
 ```
 
-预设：`base`（01-03）、`dev`（05）、`gpu`（06）、`setup`（07-09）。
+预设：`base`（01-03）、`dev`（05）、`gpu`（06）、`setup`（07-08）。
 
 ## 目录结构
 
@@ -68,7 +76,7 @@ dotfiles/
 └── README.md
 ```
 
-- [config/README.md](config/README.md) — `config.env`、Maven、compose
+- [config/README.md](config/README.md) — `config.env`、Maven、docker-compose 模板
 - [install/README.md](install/README.md) — 阶段与 lib 说明
 - [installers/README.md](installers/README.md) — 离线包放置方式
 - [scripts/README.md](scripts/README.md) — `clean-proxy.sh` 等
@@ -89,6 +97,7 @@ nvidia-smi                       # 阶段 06 重启后
 - fcitx5：`im-config` 选择 Fcitx 5，注销
 - `installers/`：按需放入安装包后运行阶段 04
 - 注销重登（docker / libvirt 组）
+- 可选：`cd config && docker compose up -d`（复制 `docker-compose.yaml.example` 后）
 
 ## 许可
 

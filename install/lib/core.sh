@@ -16,7 +16,7 @@ declare -A PRESET_STAGES=(
   [base]="01,02,03"
   [dev]="05"
   [gpu]="06"
-  [setup]="07,08,09"
+  [setup]="07,08"
 )
 
 # 安装器选项键：阶段 07 不写入系统环境
@@ -200,7 +200,6 @@ stage_source_lib() {
       # shellcheck source=git.sh
       source "$LIB_DIR/git.sh"
       ;;
-    compose) ;;
     *) die "未知 stage 类型: $name" ;;
   esac
 }
@@ -285,13 +284,12 @@ list_stages_help() {
   06  nvidia       内核头 + ubuntu-drivers
   07  env          将 config.env 中的环境变量写入用户或系统
   08  git          Git 全局身份
-  09  compose      docker compose up -d（若 config/docker-compose.yaml 存在）
 
 预设:
   base   01,02,03
   dev    05
   gpu    06
-  setup  07,08,09
+  setup  07,08
 EOF
 }
 
