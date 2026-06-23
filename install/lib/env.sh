@@ -1,25 +1,26 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
-# 将 config.env 中的环境变量写入用户或系统 scope
+# 将 environment.env 中的环境变量写入用户或系统 scope
 
 env_config_file() {
-  echo "$CONFIG_DIR/config.env"
+  echo "$CONFIG_DIR/environment.env"
 }
 
 env_collect_export_lines() {
   local cfg
   cfg="$(env_config_file)"
-  [[ -f "$cfg" ]] || die "缺少 $cfg（请先 cp config/config.env.example config/config.env）"
+  if [[ ! -f "$cfg" ]]; then
+    warn "未找到 $cfg（可选：在 config/environment.env 中添加环境变量）"
+    return 0
+  fi
 
-  local line key
+  local line
   while IFS= read -r line || [[ -n "$line" ]]; do
     line="${line%%#*}"
     line="${line#"${line%%[![:space:]]*}"}"
     line="${line%"${line##*[![:space:]]*}"}"
     [[ -z "$line" ]] && continue
     [[ "$line" =~ ^[A-Z_][A-Z0-9_]*= ]] || continue
-    key="${line%%=*}"
-    is_installer_config_key "$key" && continue
     printf '%s\n' "$line"
   done <"$cfg"
 }

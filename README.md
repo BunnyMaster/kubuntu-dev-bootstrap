@@ -1,29 +1,70 @@
-# dotfiles — Ubuntu / Kubuntu 基础环境
+# Kubuntu 基础环境
 
-面向国内用户的开源 dotfiles：APT 镜像、常用系统包、可选开发栈与本地安装包目录。**不包含**破解资源、预置 deb/AppImage/tar 包，也不捆绑个人业务配置。
+面向国内用户的开源 dotfiles：APT 镜像、常用系统包、可选开发栈与本地安装包目录。
 
-支持 **Ubuntu / Kubuntu 24.04** 与 **26.04**。仓库路径由 `git rev-parse` 或 `install/` 上级目录自动检测，无需固定 `~/Documents/dotfiles`。
+支持 **Ubuntu / Kubuntu 24.04** 与 **26.04**。
 
 ## 快速开始
 
+> [!TIP]
+>
+> 执行时可以使用阶段命令：`bash setup.sh --stages 01,02,03,04,05,07,08,09`
+
 ```bash
-git clone <your-fork> dotfiles && cd dotfiles
+git clone https://github.com/BunnyMaster/kubuntu-dev-bootstrap.git dotfiles && cd dotfiles
 
-cp config/config.env.example config/config.env
-# 编辑 GIT_USER_NAME、GIT_USER_EMAIL、APT_MIRROR 等
-
+# 按需编辑 config/config.env（Git、镜像等）与 config/environment.env（可选）
 cd install
 chmod +x setup.sh stages/*.sh lib/*.sh
+
 ./setup.sh --preset base
 ```
 
-可选：将自行下载的 `.deb` 放入 `installers/deb/`，AppImage 放入 `installers/appimage/`，tar 包（如 JetBrains Toolbox）放入 `installers/tar/`，再执行 `./setup.sh --stages 04`。
+## 配置说明
 
-## 推荐顺序
+### config 文件夹
+
+克隆后按需编辑 `config/` 中的配置文件：
+
+- `config.env` — 安装器选项（镜像、Git、开发栈等）
+- `environment.env`（可选）— 阶段 07 导出的 shell 环境变量
+- `maven-settings.xml` — Maven 阿里云镜像，阶段 05 使用
+- `docker-compose.yaml` — 本地开发栈示例，安装器不自动执行
+
+```bash
+# ── Git（阶段 08）──────────────────────────────────────
+GIT_USER_NAME=example
+GIT_USER_EMAIL=example@gmail.com
+```
+
+### 自定义安装包
+
+如果需要安装自己的`.deb`、`AppImage`、`tar`放入`installers`文件夹下即可；安装包目录结构示例：
+
+```bash
+├── appimage
+│   └── navicat17-premium-cs-x86_64.AppImage
+├── deb
+│   ├── apifox_2.8.31_amd64.deb
+│   ├── code_1.121.0-1779186519_amd64.deb
+│   ├── cursor_3.5.33_amd64.deb
+│   ├── google-chrome-stable_current_amd64.deb
+│   ├── obsidian_1.12.7_amd64.deb
+│   ├── QQ_3.2.28_260429_amd64_01.deb
+│   └── typora.deb
+├── README.md
+└── tar
+ └── jetbrains-toolbox-3.4.3.81140.tar.gz
+```
+
+## 执行说明
+
+### 推荐顺序
 
 | 步骤 | 命令                                             | 说明                                       |
 | ---- | ------------------------------------------------ | ------------------------------------------ |
-| 1    | `cp config/config.env.example config/config.env` | 填写 Git、镜像等                           |
+| 1    | 编辑 `config/config.env`                         | 填写 Git、镜像等安装器选项                   |
+| 1b   | 编辑 `config/environment.env`（可选）            | 自定义环境变量（阶段 07）                    |
 | 2    | `./setup.sh --preset base`                       | 01→03 镜像与系统包                         |
 | 3    | `./setup.sh --stages 04`                         | 可选：本地 deb/AppImage/tar                |
 | 4    | Timeshift 快照                                   | 建议 `04-installers-ok` 或 `02-base-ready` |
@@ -31,7 +72,7 @@ chmod +x setup.sh stages/*.sh lib/*.sh
 | 6    | `./setup.sh --preset gpu`                        | NVIDIA，完成后**重启**                     |
 | 7    | `./setup.sh --preset setup`                      | 环境变量、Git                              |
 
-## 阶段一览
+### 阶段一览
 
 | 阶段 | 内容                                                                     |
 | ---- | ------------------------------------------------------------------------ |
@@ -41,45 +82,19 @@ chmod +x setup.sh stages/*.sh lib/*.sh
 | 04   | `installers/deb/`、`installers/appimage/`、`installers/tar/`（空则跳过） |
 | 05   | SDKMAN Java、Maven、nvm、nrm、pnpm、Docker CE                            |
 | 06   | NVIDIA（Timeshift 提示）                                                 |
-| 07   | 将 `config.env` 中环境变量写入用户或系统 scope                           |
+| 07   | 将 `environment.env` 中环境变量写入用户或系统 scope（`ENV_SCOPE` 在 config.env） |
 | 08   | `git config --global`                                                    |
-
-重登后（docker 组生效），若需启动 compose 服务：
-
-```bash
-cp config/docker-compose.yaml.example config/docker-compose.yaml   # 首次
-cd <repo>/config && docker compose up -d
-```
-
-`docker-compose.yaml.example` 仅为模板，安装器不会自动执行 compose。
-
-## setup.sh 常用选项
-
-```bash
-./setup.sh --list-stages
-./setup.sh --dry-run --stages 01,02,03
-./setup.sh --release 24.04 --preset base
-./setup.sh --stages 05 --yes
-./setup.sh --help
-```
-
-预设：`base`（01-03）、`dev`（05）、`gpu`（06）、`setup`（07-08）。
 
 ## 目录结构
 
 ```
 dotfiles/
-├── config/           # 用户配置（*.example 在 git 中）
+├── config/           # 配置文件（随仓库提供，按需修改）
 ├── install/          # setup.sh、stages、lib、apt 源
 ├── installers/       # 用户自备 deb/AppImage/tar（不在 git）
 ├── scripts/          # 辅助脚本
 └── README.md
 ```
-
-- [config/README.md](config/README.md) — `config.env`、Maven、docker-compose 模板
-- [install/README.md](install/README.md) — 阶段与 lib 说明
-- [installers/README.md](installers/README.md) — 离线包放置方式
-- [scripts/README.md](scripts/README.md) — `clean-proxy.sh` 等
 
 ## 验收示例
 
@@ -92,12 +107,12 @@ groups | grep -E 'docker|libvirt'
 nvidia-smi                       # 阶段 06 重启后
 ```
 
-## 首次清单
+### 首次清单
 
 - fcitx5：`im-config` 选择 Fcitx 5，注销
 - `installers/`：按需放入安装包后运行阶段 04
 - 注销重登（docker / libvirt 组）
-- 可选：`cd config && docker compose up -d`（复制 `docker-compose.yaml.example` 后）
+- 可选：`cd config && docker compose up -d`
 
 ## 许可
 

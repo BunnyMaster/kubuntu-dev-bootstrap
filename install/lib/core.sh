@@ -19,25 +19,6 @@ declare -A PRESET_STAGES=(
   [setup]="07,08"
 )
 
-# 安装器选项键：阶段 07 不写入系统环境
-INSTALLER_CONFIG_KEYS=(
-  APT_MIRROR
-  APT_UPGRADE
-  INSTALL_FCITX5
-  GIT_USER_NAME
-  GIT_USER_EMAIL
-  NODE_VERSION
-  NODE_VERSION_EXTRA
-  NRM_REGISTRY
-  NPM_GLOBAL_PACKAGES
-  JAVA_17_IDENTIFIER
-  JAVA_21_IDENTIFIER
-  INSTALL_MAVEN
-  INSTALL_DOCKER
-  ENV_SCOPE
-  RELEASE
-)
-
 log()  { printf '\033[1;32m[dotfiles]\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m[dotfiles]\033[0m %s\n' "$*"; }
 err()  { printf '\033[1;31m[dotfiles]\033[0m %s\n' "$*" >&2; }
@@ -282,7 +263,7 @@ list_stages_help() {
   04  installers   installers/deb + installers/appimage + installers/tar
   05  dev          SDKMAN Java、Maven、nvm、nrm、pnpm、Docker
   06  nvidia       内核头 + ubuntu-drivers
-  07  env          将 config.env 中的环境变量写入用户或系统
+  07  env          将 environment.env 中的环境变量写入用户或系统
   08  git          Git 全局身份
 
 预设:
@@ -291,13 +272,4 @@ list_stages_help() {
   gpu    06
   setup  07,08
 EOF
-}
-
-is_installer_config_key() {
-  local key="$1"
-  local k
-  for k in "${INSTALLER_CONFIG_KEYS[@]}"; do
-    [[ "$k" == "$key" ]] && return 0
-  done
-  return 1
 }

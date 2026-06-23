@@ -42,17 +42,13 @@ dev_setup_maven_home() {
   local settings="$m2/settings.xml"
   local repo="$m2/repository"
   local src="$CONFIG_DIR/maven-settings.xml"
-  local example="$CONFIG_DIR/maven-settings.xml.example"
 
   mkdir -p "$repo"
   if [[ -f "$src" ]]; then
     install -m 644 "$src" "$settings"
     log "Maven 配置（用户）: $settings"
-  elif [[ -f "$example" ]]; then
-    install -m 644 "$example" "$settings"
-    log "Maven 配置（example）: $settings"
   else
-    warn "未找到 maven-settings.xml，跳过 Maven settings 安装"
+    warn "未找到 config/maven-settings.xml，跳过 Maven settings 安装"
   fi
   log "本地仓库: $repo"
 }

@@ -41,7 +41,7 @@ Ubuntu/Kubuntu dotfiles 分阶段安装
   ./setup.sh --yes                        非交互确认
 
 推荐顺序:
-  cp ../config/config.env.example ../config/config.env   # 首次
+  编辑 ../config/config.env（Git、镜像等）与 ../config/environment.env（可选）
   ./setup.sh --preset base
   ./setup.sh --stages 04              # 可选：本地 deb/AppImage/tar
   ./setup.sh --preset dev
