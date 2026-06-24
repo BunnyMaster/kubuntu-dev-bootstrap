@@ -1,5 +1,14 @@
 # Kubuntu 基础环境
 
+> [!CAUTION]
+>
+> **NVIDIA 驱动（阶段 06）风险较高，安装前需注意**
+>
+> - 驱动版本与显卡/内核不匹配可能导致**黑屏**、桌面无法启动或登录循环。
+> - **Secure Boot** 未关闭时专有驱动可能无法加载；缺少对应 **linux-headers** 时 DKMS 编译会失败。
+> - 阶段 06 通过 `ubuntu-drivers devices` 检测推荐包，再执行 `ubuntu-drivers install` 安装。
+> - 本脚本在 **4060 Ti** 上测试通过；其他型号、笔记本或双显卡机型行为可能不同，请自行核对推荐驱动后再继续。
+
 面向国内用户的开源 dotfiles：APT 镜像、常用系统包、可选开发栈与本地安装包目录。
 
 支持 **Ubuntu / Kubuntu 24.04** 与 **26.04**。
@@ -8,7 +17,7 @@
 
 > [!TIP]
 >
-> 执行时可以使用阶段命令：`bash setup.sh --stages 01,02,03,04,05,07,08,09`
+> 执行时可以使用阶段命令：`bash setup.sh --stages 01,02,03,04,05,07,08`
 
 ```bash
 git clone https://github.com/BunnyMaster/kubuntu-dev-bootstrap.git dotfiles && cd dotfiles
@@ -17,24 +26,8 @@ git clone https://github.com/BunnyMaster/kubuntu-dev-bootstrap.git dotfiles && c
 cd install
 chmod +x setup.sh stages/*.sh lib/*.sh
 
+# ./setup.sh --stages 01,02,03,04,05,07,08
 ./setup.sh --preset base
-```
-
-## 配置说明
-
-### config 文件夹
-
-克隆后按需编辑 `config/` 中的配置文件：
-
-- `config.env` — 安装器选项（镜像、Git、开发栈等）
-- `environment.env`（可选）— 阶段 07 导出的 shell 环境变量
-- `maven-settings.xml` — Maven 阿里云镜像，阶段 05 使用
-- `docker-compose.yaml` — 本地开发栈示例，安装器不自动执行
-
-```bash
-# ── Git（阶段 08）──────────────────────────────────────
-GIT_USER_NAME=example
-GIT_USER_EMAIL=example@gmail.com
 ```
 
 ### 自定义安装包
@@ -57,33 +50,60 @@ GIT_USER_EMAIL=example@gmail.com
  └── jetbrains-toolbox-3.4.3.81140.tar.gz
 ```
 
+### config 文件夹
+
+克隆后按需编辑 `config/` 中的配置文件：
+
+- `config.env` — 安装器选项（镜像、Git、开发栈等）
+- `environment.env`（可选）— 阶段 07 导出的 shell 环境变量
+- `maven-settings.xml` — Maven 阿里云镜像，阶段 05 使用
+- `docker-compose.yaml` — 本地开发栈示例，安装器不自动执行
+
+```bash
+# ── Git（阶段 08）──────────────────────────────────────
+GIT_USER_NAME=example
+GIT_USER_EMAIL=example@gmail.com
+```
+
 ## 执行说明
 
 ### 推荐顺序
 
-| 步骤 | 命令                                             | 说明                                       |
-| ---- | ------------------------------------------------ | ------------------------------------------ |
-| 1    | 编辑 `config/config.env`                         | 填写 Git、镜像等安装器选项                   |
-| 1b   | 编辑 `config/environment.env`（可选）            | 自定义环境变量（阶段 07）                    |
-| 2    | `./setup.sh --preset base`                       | 01→03 镜像与系统包                         |
-| 3    | `./setup.sh --stages 04`                         | 可选：本地 deb/AppImage/tar                |
-| 4    | Timeshift 快照                                   | 建议 `04-installers-ok` 或 `02-base-ready` |
-| 5    | `./setup.sh --preset dev`                        | Java / Maven / nvm / Docker                |
-| 6    | `./setup.sh --preset gpu`                        | NVIDIA，完成后**重启**                     |
-| 7    | `./setup.sh --preset setup`                      | 环境变量、Git                              |
+| 步骤 | 命令                                  | 说明                                       |
+| ---- | ------------------------------------- | ------------------------------------------ |
+| 1    | 编辑 `config/config.env`              | 填写 Git、镜像等安装器选项                 |
+| 1b   | 编辑 `config/environment.env`（可选） | 自定义环境变量（阶段 07）                  |
+| 2    | `./setup.sh --preset base`            | 01→03 镜像与系统包                         |
+| 3    | `./setup.sh --stages 04`              | 可选：本地 deb/AppImage/tar                |
+| 4    | Timeshift 快照                        | 建议 `04-installers-ok` 或 `02-base-ready` |
+| 5    | `./setup.sh --preset dev`             | Java / Maven / nvm / Docker                |
+| 6    | `./setup.sh --preset gpu`             | NVIDIA，完成后**重启**                     |
+| 7    | `./setup.sh --preset setup`           | 环境变量、Git                              |
 
 ### 阶段一览
 
-| 阶段 | 内容                                                                     |
-| ---- | ------------------------------------------------------------------------ |
-| 01   | APT 镜像（`APT_MIRROR=tuna\|official`）                                  |
-| 02   | 基础包 `install/packages-base.txt`                                       |
-| 03   | 系统包 `install/packages-extras.txt` + fcitx5（`INSTALL_FCITX5=1`）      |
-| 04   | `installers/deb/`、`installers/appimage/`、`installers/tar/`（空则跳过） |
-| 05   | SDKMAN Java、Maven、nvm、nrm、pnpm、Docker CE                            |
-| 06   | NVIDIA（Timeshift 提示）                                                 |
+| 阶段 | 内容                                                                             |
+| ---- | -------------------------------------------------------------------------------- |
+| 01   | APT 镜像（`APT_MIRROR=tuna\|official`）                                          |
+| 02   | 基础包 `install/packages-base.txt`                                               |
+| 03   | 系统包 `install/packages-extras.txt` + fcitx5（`INSTALL_FCITX5=1`）              |
+| 04   | `installers/deb/`、`installers/appimage/`、`installers/tar/`（空则跳过）         |
+| 05   | SDKMAN Java、Maven、nvm、nrm、pnpm、Docker CE                                    |
+| 06   | NVIDIA（`ubuntu-drivers`，Timeshift 提示）                                       |
 | 07   | 将 `environment.env` 中环境变量写入用户或系统 scope（`ENV_SCOPE` 在 config.env） |
-| 08   | `git config --global`                                                    |
+| 08   | `git config --global`                                                            |
+
+### 交互确认
+
+默认情况下，以下阶段会暂停等待人工确认（输入 `y` 继续）：
+
+| 阶段      | 确认时机                                  | 说明                                                                                                      |
+| --------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| 05 dev    | 阶段开始时 1 次                           | 「网络可访问外网（SDKMAN/nvm 需下载），继续？」确认后 SDKMAN、Java、Maven、nvm 等将自动安装，不再二次确认 |
+| 06 nvidia | 阶段开始时 1 次                           | 「已做好快照并了解风险，继续？」（含 Timeshift、Secure Boot、重启提示）                                   |
+| 06 nvidia | 显示 `ubuntu-drivers devices` 输出后 1 次 | 「执行 ubuntu-drivers install 安装推荐驱动？」拒绝时可据 `/tmp/dotfiles-ubuntu-drivers.txt` 手动安装      |
+
+使用 `./setup.sh --yes` 或 `-y` 可跳过**全部**确认（阶段 06 会直接执行 `ubuntu-drivers install`，请谨慎使用）。
 
 ## 目录结构
 

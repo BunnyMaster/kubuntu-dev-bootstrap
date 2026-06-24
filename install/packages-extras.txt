@@ -18,3 +18,4 @@ lm-sensors
 chntpw
 libnss-winbind
 winbind
+python3.14-venv
