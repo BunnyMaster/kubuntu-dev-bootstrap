@@ -2,6 +2,18 @@
 
 辅助 shell 脚本，不参与 `setup.sh` 主流程。
 
+## migrate-from-sdkman.sh
+
+仅安装 APT OpenJDK 与 `/opt/maven`（阶段 04 的 Java/Maven 部分），不安装 nvm/Docker。适用于从 SDKMAN 迁移。
+
+```bash
+./scripts/migrate-from-sdkman.sh
+```
+
+迁移前编辑 `config/config.env`（`JAVA_DEFAULT`、`MAVEN_VERSION` 等）。安装后从 shell 启动文件移除 SDKMAN 块，新开终端验收，再 `rm -rf ~/.sdkman`。
+
+Maven 会写入 `/etc/profile.d/maven.sh`，并在 `/usr/local/bin/mvn` 创建 symlink，以便 Konsole 等非 login shell 也能找到 `mvn`（`java` 已通过 `update-alternatives` 在 `/usr/bin`）。
+
 ## clean-proxy.sh
 
 清理当前 shell、KDE/GNOME 系统代理，以及 `~/.bashrc`、`~/.profile` 中的 `http_proxy` / `https_proxy` 等 export。

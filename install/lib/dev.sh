@@ -10,43 +10,49 @@ dev_jvm_home() {
 }
 
 dev_install_java() {
-  local arch jvm_17 jvm_21 default_jvm pkgs=()
+  local java_install="${JAVA_INSTALL:-}"
+  local java_default="${JAVA_DEFAULT:-}"
+  local -a versions=() pkgs=() unique_versions=()
+  local ver jvm default_jvm priority
+  declare -A seen=()
 
-  arch="$(dpkg --print-architecture)"
-  jvm_17="$(dev_jvm_home 17)"
-  jvm_21="$(dev_jvm_home 21)"
-
-  if [[ "${INSTALL_JAVA_17:-1}" == "1" ]]; then
-    pkgs+=(openjdk-17-jdk)
+  if [[ -z "$java_install" ]]; then
+    warn "JAVA_INSTALL 为空，跳过 Java 安装"
+    return 0
   fi
-  pkgs+=(openjdk-21-jdk)
+
+  local IFS=','
+  read -ra versions <<<"${java_install// /}"
+
+  for ver in "${versions[@]}"; do
+    [[ -n "$ver" ]] || continue
+    [[ "$ver" =~ ^[0-9]+$ ]] || die "JAVA_INSTALL 含无效版本: $ver"
+    [[ -n "${seen[$ver]:-}" ]] && continue
+    seen["$ver"]=1
+    unique_versions+=("$ver")
+    pkgs+=("openjdk-${ver}-jdk")
+  done
+
+  ((${#pkgs[@]})) || die "JAVA_INSTALL 未解析到有效版本: ${java_install}"
+  [[ -n "${seen[$java_default]:-}" ]] \
+    || die "JAVA_DEFAULT=${java_default} 不在 JAVA_INSTALL 列表中（${java_install}）"
 
   log "安装 Java（APT: ${pkgs[*]}）..."
   apt_install "${pkgs[@]}"
 
-  if [[ "${INSTALL_JAVA_17:-1}" == "1" ]]; then
-    [[ -d "$jvm_17" ]] || die "未找到 JDK 17: $jvm_17"
-    sudo update-alternatives --install /usr/bin/java java "${jvm_17}/bin/java" 1717
-    sudo update-alternatives --install /usr/bin/javac javac "${jvm_17}/bin/javac" 1717
-  fi
+  for ver in "${unique_versions[@]}"; do
+    jvm="$(dev_jvm_home "$ver")"
+    [[ -d "$jvm" ]] || die "未找到 JDK ${ver}: $jvm"
+    priority=$((1700 + ver))
+    sudo update-alternatives --install /usr/bin/java java "${jvm}/bin/java" "$priority"
+    sudo update-alternatives --install /usr/bin/javac javac "${jvm}/bin/javac" "$priority"
+  done
 
-  [[ -d "$jvm_21" ]] || die "未找到 JDK 21: $jvm_21"
-  sudo update-alternatives --install /usr/bin/java java "${jvm_21}/bin/java" 2121
-  sudo update-alternatives --install /usr/bin/javac javac "${jvm_21}/bin/javac" 2121
-
-  case "${JAVA_DEFAULT_VERSION:-21}" in
-    17)
-      [[ "${INSTALL_JAVA_17:-1}" == "1" ]] || die "JAVA_DEFAULT_VERSION=17 但 INSTALL_JAVA_17=0"
-      default_jvm="$jvm_17"
-      ;;
-    21) default_jvm="$jvm_21" ;;
-    *) die "未知 JAVA_DEFAULT_VERSION=${JAVA_DEFAULT_VERSION}（可用: 17, 21）" ;;
-  esac
-
+  default_jvm="$(dev_jvm_home "$java_default")"
   sudo update-alternatives --set java "${default_jvm}/bin/java"
   sudo update-alternatives --set javac "${default_jvm}/bin/javac"
 
-  log "默认 Java: ${default_jvm} (JAVA_DEFAULT_VERSION=${JAVA_DEFAULT_VERSION})"
+  log "默认 Java: ${default_jvm} (JAVA_DEFAULT=${java_default})"
 
   sudo tee /etc/profile.d/java.sh >/dev/null <<EOF
 # Managed by dotfiles install (stage 04)
@@ -55,6 +61,13 @@ export PATH="\$JAVA_HOME/bin:\$PATH"
 EOF
   sudo chmod 644 /etc/profile.d/java.sh
   log "已写入 /etc/profile.d/java.sh"
+}
+
+dev_link_maven_bin() {
+  local link="/opt/maven"
+  [[ -x "${link}/bin/mvn" ]] || return 0
+  sudo ln -sf "${link}/bin/mvn" /usr/local/bin/mvn
+  log "已创建 symlink: /usr/local/bin/mvn -> ${link}/bin/mvn"
 }
 
 dev_install_maven() {
@@ -67,6 +80,7 @@ dev_install_maven() {
 
   if [[ -x "${link}/bin/mvn" ]]; then
     log "Maven 已安装: $("${link}/bin/mvn" -v 2>/dev/null | head -1)"
+    dev_link_maven_bin
     return 0
   fi
 
@@ -103,6 +117,7 @@ export PATH="\$MAVEN_HOME/bin:\$PATH"
 EOF
   sudo chmod 644 /etc/profile.d/maven.sh
   log "已写入 /etc/profile.d/maven.sh"
+  dev_link_maven_bin
   log "Maven 安装完成: $("${link}/bin/mvn" -v 2>/dev/null | head -1)"
 }
 

@@ -67,6 +67,10 @@ chmod +x setup.sh stages/*.sh lib/*.sh
 # ── Git（阶段 06）──────────────────────────────────────
 GIT_USER_NAME=example
 GIT_USER_EMAIL=example@gmail.com
+
+# ── Java（阶段 04，APT + update-alternatives）──────────
+JAVA_INSTALL=17,21
+JAVA_DEFAULT=17
 ```
 
 ## 执行说明
