@@ -19,6 +19,7 @@ pkg_read_list_file() {
 pkg_install_from_list() {
   local label="$1"
   local file="$2"
+  local do_upgrade="${3:-0}"
   local pkgs=()
   pkg_read_list_file "$file" pkgs
   if ((${#pkgs[@]} == 0)); then
@@ -27,7 +28,7 @@ pkg_install_from_list() {
   fi
   log "$label (${#pkgs[@]} 个包) ..."
   apt_update
-  if [[ "${APT_UPGRADE:-1}" == "1" ]]; then
+  if [[ "$do_upgrade" == "1" ]]; then
     apt_upgrade
   fi
   apt_install "${pkgs[@]}"
@@ -35,7 +36,9 @@ pkg_install_from_list() {
 }
 
 pkg_install_base() {
-  pkg_install_from_list "安装基础包" "$INSTALL_DIR/packages-base.txt"
+  local do_upgrade=0
+  [[ "${APT_UPGRADE:-1}" == "1" ]] && do_upgrade=1
+  pkg_install_from_list "安装基础包" "$INSTALL_DIR/packages-base.txt" "$do_upgrade"
 }
 
 pkg_install_system_extras() {

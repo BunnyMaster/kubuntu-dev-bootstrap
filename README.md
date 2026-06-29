@@ -80,14 +80,25 @@ JAVA_DEFAULT=17
 | 阶段 | 内容                                                                             |
 | ---- | -------------------------------------------------------------------------------- |
 | 01   | APT 镜像（`APT_MIRROR=tuna\|official`）                                          |
-| 02   | 基础包 `install/packages-base.txt`（仅 apt）                                     |
-| 03   | 系统包 `install/packages-extras.txt`（仅 apt，不含 fcitx5）                      |
+| 02   | 基础包 `install/packages-base.txt`（仅 apt；`APT_UPGRADE=1` 时在此阶段 upgrade） |
+| 03   | 系统包 `install/packages-extras.txt`（仅 apt update + install，不含 fcitx5）      |
 | 04   | APT Java、Apache Maven、nvm、nrm、pnpm、Docker CE（需外网）                     |
 | 05   | `installers/deb/`、`installers/appimage/`、`installers/tar/`（空则跳过）         |
 | 06   | `git config --global`（可选确认）                                                |
 | 07   | 将 `environment.env` 中环境变量写入用户或系统 scope（`ENV_SCOPE` 在 config.env） |
 | 08   | fcitx5 包 `install/packages-fcitx5.txt` + 词库（词库需外网确认）                 |
 | 09   | NVIDIA（`ubuntu-drivers`，Timeshift 提示）                                       |
+
+### 新机器与 unattended-upgrades
+
+全新 Ubuntu/Kubuntu 首次开机时，系统常自动运行 `unattended-upgrades` 占用 apt/dpkg 锁，导致阶段 01–03 出现 `Waiting for cache lock` 并长时间无输出。
+
+安装脚本会在首次 apt 操作前：
+
+1. **临时停止** `unattended-upgrades` 与 `packagekit`（带中文提示，无需确认；`--yes` 模式同样适用）
+2. **轮询等待** 锁释放，并显示占用进程与已等待时间（默认最多 10 分钟，可在 `config.env` 调整 `APT_LOCK_MAX_WAIT`）
+
+若仍卡住，可另开终端执行：`sudo systemctl stop unattended-upgrades`
 
 ### 交互确认
 

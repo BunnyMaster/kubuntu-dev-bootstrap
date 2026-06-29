@@ -76,7 +76,7 @@ dev_install_maven() {
   local artifact="apache-maven-${version}-bin"
   local install_dir="/opt/apache-maven-${version}"
   local link="/opt/maven"
-  local tmpdir downloaded="" url
+  local tmpdir="" downloaded="" url
 
   if [[ -x "${link}/bin/mvn" ]]; then
     log "Maven 已安装: $("${link}/bin/mvn" -v 2>/dev/null | head -1)"
@@ -85,7 +85,8 @@ dev_install_maven() {
   fi
 
   tmpdir="$(mktemp -d)"
-  trap 'rm -rf "$tmpdir"' RETURN
+  # Embed path at trap install time; RETURN runs after locals may be unset (set -u).
+  trap '[[ -n "'"$tmpdir"'" ]] && rm -rf "'"$tmpdir"'"' RETURN
 
   local -a urls=(
     "https://mirrors.aliyun.com/apache/maven/maven-${major}/${version}/binaries/${artifact}.tar.gz"
