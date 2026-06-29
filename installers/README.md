@@ -15,10 +15,10 @@ installers/
 
 ```bash
 cd install
-./setup.sh --stages 04
+./setup.sh --stages 05
 ```
 
-目录为空时阶段 04 会跳过相应步骤，不会失败。
+目录为空时阶段 05 会跳过相应步骤，不会失败。
 
 ## 说明
 
@@ -31,7 +31,7 @@ cd install
 
 1. 从 [JetBrains Toolbox 下载页](https://www.jetbrains.com/toolbox-app/) 获取 Linux `.tar.gz`
 2. 放入 `installers/tar/`，例如 `jetbrains-toolbox-2.5.3.25485.tar.gz`
-3. 运行 `./setup.sh --stages 04`
+3. 运行 `./setup.sh --stages 05`
 
 ## .gitkeep
 

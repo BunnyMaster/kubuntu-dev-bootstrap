@@ -6,11 +6,11 @@ INSTALL_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 # shellcheck source=../lib/core.sh
 source "$INSTALL_DIR/lib/core.sh"
 
-CURRENT_STAGE_NUM=06
-stage_init 06 nvidia
+CURRENT_STAGE_NUM=09
+stage_init 09 nvidia
 
 warn "安装前请确认:"
-warn "  1. 已用 Timeshift 创建快照（建议阶段 04 后快照）"
+warn "  1. 已用 Timeshift 创建快照（建议阶段 05 后快照）"
 warn "  2. BIOS 中已关闭 Secure Boot（推荐）"
 warn "  3. 安装完成后必须重启"
 
@@ -22,5 +22,5 @@ fi
 pkg_install_nvidia_prereqs
 pkg_run_ubuntu_drivers
 
-print_timeshift_hint "06-nvidia-installed-reboot"
+print_timeshift_hint "09-nvidia-installed-reboot"
 stage_done "重启后: nvidia-smi" "然后: ./setup.sh --preset dev（若尚未执行）"

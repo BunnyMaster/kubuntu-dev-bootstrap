@@ -9,4 +9,4 @@ source "$INSTALL_DIR/lib/core.sh"
 CURRENT_STAGE_NUM=03
 stage_init 03 system
 pkg_install_system_extras
-stage_done "fcitx5 --version 2>/dev/null || dpkg -l fcitx5 2>/dev/null | tail -1" "vlc --version 2>/dev/null | head -1"
+stage_done "vlc --version 2>/dev/null | head -1" "virt-manager --version 2>/dev/null || dpkg -l virt-manager 2>/dev/null | tail -1"

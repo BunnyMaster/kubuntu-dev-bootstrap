@@ -22,7 +22,8 @@ cd install
 ## 包列表
 
 - `packages-base.txt` — 阶段 02，各版本共享
-- `packages-extras.txt` — 阶段 03；`INSTALL_FCITX5=0` 时跳过 fcitx5 相关行
+- `packages-extras.txt` — 阶段 03，不含 fcitx5
+- `packages-fcitx5.txt` — 阶段 08；`INSTALL_FCITX5=0` 时跳过
 
 ## lib/
 
@@ -31,24 +32,25 @@ cd install
 | `core.sh` | 配置、发行版、stage 生命周期 |
 | `apt.sh` | 镜像与 apt 操作 |
 | `packages.sh` | 包列表安装 |
-| `gui.sh` | 阶段 04 deb/AppImage/tar |
-| `dev.sh` | SDKMAN、nvm、npm |
+| `gui.sh` | 阶段 05 deb/AppImage/tar |
+| `dev.sh` | APT Java、Apache Maven、nvm、npm |
 | `docker.sh` | Docker CE（keyring） |
 | `env.sh` | 阶段 07 环境变量 |
-| `git.sh` | 阶段 08 Git |
+| `git.sh` | 阶段 06 Git |
 
 ## 阶段脚本
 
-`stages/01-mirror.sh` … `08-git.sh`，由 `setup.sh` 按编号调用。
+`stages/01-mirror.sh` … `09-nvidia.sh`，由 `setup.sh` 按编号调用。
 
 ## 预设
 
 - `base` → 01,02,03
-- `dev` → 05
-- `gpu` → 06
-- `setup` → 07,08
+- `dev` → 04
+- `local` → 05
+- `setup` → 06,07
+- `gpu` → 09
 
-重登后手动启动 compose（阶段 05 安装 Docker 后需重新登录使 docker 组生效）：
+重登后手动启动 compose（阶段 04 安装 Docker 后需重新登录使 docker 组生效）：
 
 ```bash
 cd <repo>/config && docker compose up -d

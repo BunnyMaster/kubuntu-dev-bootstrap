@@ -31,9 +31,10 @@ Ubuntu/Kubuntu dotfiles 分阶段安装
 用法:
   ./setup.sh                              交互菜单
   ./setup.sh --preset base                01-03（镜像 + 基础包 + 系统包）
-  ./setup.sh --preset dev                 05 开发栈
-  ./setup.sh --preset gpu                 06 NVIDIA
-  ./setup.sh --preset setup               07-08 收尾（环境变量、Git）
+  ./setup.sh --preset dev                 04 开发栈
+  ./setup.sh --preset local               05 本地 installers
+  ./setup.sh --preset gpu                 09 NVIDIA
+  ./setup.sh --preset setup               06-07 收尾（Git、环境变量）
   ./setup.sh --stages 01,02,03            指定阶段（--stage 为别名）
   ./setup.sh --release 24.04|26.04        指定发行版（默认自动检测）
   ./setup.sh --list-stages                列出阶段
@@ -43,10 +44,11 @@ Ubuntu/Kubuntu dotfiles 分阶段安装
 推荐顺序:
   编辑 ../config/config.env（Git、镜像等）与 ../config/environment.env（可选）
   ./setup.sh --preset base
-  ./setup.sh --stages 04              # 可选：本地 deb/AppImage/tar
-  ./setup.sh --preset dev
-  ./setup.sh --preset gpu             # 重启后
-  ./setup.sh --preset setup           # 可选
+  ./setup.sh --preset dev                 # 需外网（Maven/nvm/Docker）
+  ./setup.sh --preset local               # 可选：本地 deb/AppImage/tar
+  ./setup.sh --preset setup               # 可选：Git + 环境变量
+  ./setup.sh --stages 08                  # fcitx5（词库需外网确认）
+  ./setup.sh --preset gpu                 # 最后，重启后
 
 EOF
   list_stages_help
@@ -168,13 +170,13 @@ if [[ "$LIST_STAGES" == "1" ]]; then
 fi
 
 case "$PRESET" in
-  base|dev|gpu|setup)
+  base|dev|local|gpu|setup)
     STAGES_ARG="${PRESET_STAGES[$PRESET]}"
     ;;
   "")
     ;;
   *)
-    die "未知 preset: $PRESET（可用: base, dev, gpu, setup）"
+    die "未知 preset: $PRESET（可用: base, dev, local, gpu, setup）"
     ;;
 esac
 
@@ -186,15 +188,17 @@ if [[ -z "$STAGES_ARG" ]]; then
   echo "  1) 01 镜像源"
   echo "  2) 02 基础包"
   echo "  3) 03 系统包"
-  echo "  4) 04 本地 installers"
-  echo "  5) 05 开发环境"
-  echo "  6) 06 NVIDIA"
+  echo "  4) 04 开发环境"
+  echo "  5) 05 本地 installers"
+  echo "  6) 06 Git"
   echo "  7) 07 环境变量"
-  echo "  8) 08 Git"
+  echo "  8) 08 fcitx5"
+  echo "  9) 09 NVIDIA"
   echo "  a) preset base: 01-03"
-  echo "  b) preset dev: 05"
-  echo "  c) preset gpu: 06"
-  echo "  d) preset setup: 07-08"
+  echo "  b) preset dev: 04"
+  echo "  c) preset local: 05"
+  echo "  d) preset setup: 06-07"
+  echo "  e) preset gpu: 09"
   echo "  0) 退出"
   read -r -p "请选择: " choice
   case "$choice" in
@@ -206,10 +210,12 @@ if [[ -z "$STAGES_ARG" ]]; then
     6) STAGES_ARG="06" ;;
     7) STAGES_ARG="07" ;;
     8) STAGES_ARG="08" ;;
+    9) STAGES_ARG="09" ;;
     a|A) STAGES_ARG="${PRESET_STAGES[base]}" ;;
     b|B) STAGES_ARG="${PRESET_STAGES[dev]}" ;;
-    c|C) STAGES_ARG="${PRESET_STAGES[gpu]}" ;;
+    c|C) STAGES_ARG="${PRESET_STAGES[local]}" ;;
     d|D) STAGES_ARG="${PRESET_STAGES[setup]}" ;;
+    e|E) STAGES_ARG="${PRESET_STAGES[gpu]}" ;;
     *) exit 0 ;;
   esac
 fi

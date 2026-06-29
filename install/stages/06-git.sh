@@ -6,8 +6,8 @@ INSTALL_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 # shellcheck source=../lib/core.sh
 source "$INSTALL_DIR/lib/core.sh"
 
-CURRENT_STAGE_NUM=08
-stage_init 08 git
+CURRENT_STAGE_NUM=06
+stage_init 06 git
 
 if git_apply_from_config; then
   stage_done "git config --global user.name" "git config --global user.email"

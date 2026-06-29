@@ -16,19 +16,6 @@ pkg_read_list_file() {
   done <"$file"
 }
 
-pkg_filter_fcitx5() {
-  local -n _in=$1
-  local -n _out=$2
-  _out=()
-  local pkg
-  for pkg in "${_in[@]}"; do
-    if [[ "$pkg" == fcitx5* || "$pkg" == kde-config-fcitx5 ]]; then
-      continue
-    fi
-    _out+=("$pkg")
-  done
-}
-
 pkg_install_from_list() {
   local label="$1"
   local file="$2"
@@ -52,35 +39,7 @@ pkg_install_base() {
 }
 
 pkg_install_system_extras() {
-  local pkgs=()
-  local filtered=()
-  pkg_read_list_file "$INSTALL_DIR/packages-extras.txt" pkgs
-
-  if [[ "${INSTALL_FCITX5:-1}" == "1" ]]; then
-    filtered=("${pkgs[@]}")
-    log "INSTALL_FCITX5=1，将安装 fcitx5 相关包"
-  else
-    pkg_filter_fcitx5 pkgs filtered
-    warn "INSTALL_FCITX5=0，跳过 fcitx5 相关包"
-  fi
-
-  if ((${#filtered[@]} == 0)); then
-    warn "系统包列表过滤后为空，跳过"
-    return 0
-  fi
-
-  log "安装系统软件 (${#filtered[@]} 个包) ..."
-  apt_update
-  if [[ "${APT_UPGRADE:-1}" == "1" ]]; then
-    apt_upgrade
-  fi
-  apt_install "${filtered[@]}"
-  log "系统软件安装完成"
-
-  if [[ "${INSTALL_FCITX5:-1}" == "1" ]]; then
-    pkg_install_fcitx5_dict_optional
-    warn "fcitx5: 运行 im-config 选择 Fcitx 5，注销后生效。"
-  fi
+  pkg_install_from_list "安装系统软件" "$INSTALL_DIR/packages-extras.txt"
   pkg_setup_libvirt_group
 }
 
@@ -92,7 +51,23 @@ pkg_setup_libvirt_group() {
   fi
 }
 
-pkg_install_fcitx5_dict_optional() {
+pkg_install_fcitx5() {
+  if [[ "${INSTALL_FCITX5:-1}" != "1" ]]; then
+    warn "INSTALL_FCITX5=0，跳过 fcitx5 安装"
+    return 0
+  fi
+
+  pkg_install_from_list "安装 fcitx5" "$INSTALL_DIR/packages-fcitx5.txt"
+  warn "fcitx5: 运行 im-config 选择 Fcitx 5，注销后生效。"
+
+  if confirm "下载 fcitx5 拼音词库？（需访问 GitHub 外网）"; then
+    pkg_install_fcitx5_dict
+  else
+    warn "已跳过词库下载"
+  fi
+}
+
+pkg_install_fcitx5_dict() {
   local dict_url="https://github.com/felixonmars/fcitx5-pinyin-zhwiki/releases/download/0.2.4/zhwiki-20220416.dict"
   local dest_dir="$HOME/.local/share/fcitx5/pinyin/dictionaries"
   local dest="$dest_dir/zhwiki-20220416.dict"
@@ -106,7 +81,7 @@ pkg_install_fcitx5_dict_optional() {
   if wget -q --timeout=30 --tries=2 -O "$dest" "$dict_url" 2>/dev/null; then
     log "已下载 fcitx5 拼音词库"
   else
-    warn "fcitx5 词库下载失败（可忽略，需外网）: $dict_url"
+    warn "fcitx5 词库下载失败（需外网）: $dict_url"
     rm -f "$dest"
   fi
 }

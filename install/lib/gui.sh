@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
-# 阶段 04 本地安装：installers/deb + installers/appimage + installers/tar
+# 阶段 05 本地安装：installers/deb + installers/appimage + installers/tar
 
 GUI_FAILED=()
 GUI_SKIPPED=()
@@ -314,7 +314,7 @@ gui_install_all() {
   gui_refresh_desktop_database
 
   echo ""
-  log "=== 阶段 04 installers 汇总 ==="
+  log "=== 阶段 05 installers 汇总 ==="
   if ((${#GUI_FAILED[@]})); then
     warn "失败 (${#GUI_FAILED[@]}): ${GUI_FAILED[*]}"
   else

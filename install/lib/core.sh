@@ -14,9 +14,10 @@ APPIMAGES_DIR="/opt/appimages"
 
 declare -A PRESET_STAGES=(
   [base]="01,02,03"
-  [dev]="05"
-  [gpu]="06"
-  [setup]="07,08"
+  [dev]="04"
+  [local]="05"
+  [setup]="06,07"
+  [gpu]="09"
 )
 
 log()  { printf '\033[1;32m[dotfiles]\033[0m %s\n' "$*"; }
@@ -133,8 +134,9 @@ load_config() {
   NODE_VERSION_EXTRA="${NODE_VERSION_EXTRA:-18}"
   NRM_REGISTRY="${NRM_REGISTRY:-tencent}"
   NPM_GLOBAL_PACKAGES="${NPM_GLOBAL_PACKAGES:-}"
-  JAVA_17_IDENTIFIER="${JAVA_17_IDENTIFIER:-17.0.14-tem}"
-  JAVA_21_IDENTIFIER="${JAVA_21_IDENTIFIER:-21.0.6-tem}"
+  JAVA_DEFAULT_VERSION="${JAVA_DEFAULT_VERSION:-21}"
+  INSTALL_JAVA_17="${INSTALL_JAVA_17:-1}"
+  MAVEN_VERSION="${MAVEN_VERSION:-3.9.9}"
   INSTALL_MAVEN="${INSTALL_MAVEN:-1}"
   INSTALL_DOCKER="${INSTALL_DOCKER:-1}"
   GIT_USER_NAME="${GIT_USER_NAME:-}"
@@ -153,7 +155,7 @@ stage_source_lib() {
       # shellcheck source=apt.sh
       source "$LIB_DIR/apt.sh"
       ;;
-    base|system|nvidia)
+    base|system|fcitx5|nvidia)
       # shellcheck source=apt.sh
       source "$LIB_DIR/apt.sh"
       # shellcheck source=packages.sh
@@ -232,8 +234,8 @@ print_manual_checklist() {
   cat <<'EOF'
 
 --- 首次使用清单 ---
-[ ] fcitx5：im-config 选择 Fcitx 5，注销后生效
-[ ] installers/：按需放入 deb / AppImage / tar 后运行阶段 04
+[ ] fcitx5（阶段 08）：im-config 选择 Fcitx 5，注销后生效
+[ ] installers/：按需放入 deb / AppImage / tar 后运行阶段 05
 [ ] 注销并重新登录（docker / libvirt 组生效）
 
 EOF
@@ -258,18 +260,20 @@ list_stages_help() {
   cat <<'EOF'
 阶段:
   01  mirror       APT 镜像（清华或官方）
-  02  base         packages-base.txt
-  03  system       packages-extras.txt + fcitx5 词库（可选）
-  04  installers   installers/deb + installers/appimage + installers/tar
-  05  dev          SDKMAN Java、Maven、nvm、nrm、pnpm、Docker
-  06  nvidia       内核头 + ubuntu-drivers
+  02  base         packages-base.txt（仅 apt）
+  03  system       packages-extras.txt（仅 apt，不含 fcitx5）
+  04  dev          APT Java、Apache Maven、nvm、nrm、pnpm、Docker（需外网）
+  05  installers   installers/deb + installers/appimage + installers/tar
+  06  git          Git 全局身份（可选确认）
   07  env          将 environment.env 中的环境变量写入用户或系统
-  08  git          Git 全局身份
+  08  fcitx5       packages-fcitx5.txt + 词库（词库需外网确认）
+  09  nvidia       内核头 + ubuntu-drivers（危险，需确认）
 
 预设:
   base   01,02,03
-  dev    05
-  gpu    06
-  setup  07,08
+  dev    04
+  local  05
+  setup  06,07
+  gpu    09
 EOF
 }

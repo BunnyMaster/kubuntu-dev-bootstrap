@@ -6,15 +6,15 @@ INSTALL_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 # shellcheck source=../lib/core.sh
 source "$INSTALL_DIR/lib/core.sh"
 
-CURRENT_STAGE_NUM=04
-stage_init 04 installers
+CURRENT_STAGE_NUM=05
+stage_init 05 installers
 
 set +e
 gui_install_all
 gui_exit=$?
 set -e
 
-print_timeshift_hint "04-installers-ok"
+print_timeshift_hint "05-installers-ok"
 stage_done \
   "ls $DOTFILES_DIR/installers/deb/*.deb 2>/dev/null || echo '无 deb'" \
   "ls $APPIMAGES_DIR 2>/dev/null || echo '无 AppImage'" \
